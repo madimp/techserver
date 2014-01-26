@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>joystick</title>
+
+	</head>
+	<body>
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="/js/jquery.js"></script>
+		<script src="/js/EventEmitter.js"></script>
+		<script src="/js/fn-query.js"></script>
+		<script src="/js/rpc.js"></script>
+		<!--<script>
+		  socket.on('news', function (data) {
+		    console.log(data);
+		    socket.emit('my other event', { my: 'data' });
+		  });
+		</script>-->
+	</body>
+	<div id="player" style="display: none;">
+		<form>
+			<input id="token"></input>
+			<button id="connect" type="submit">connect</button>
+		</form>
+	</div>
+	<div id="console" style="display: none;">
+		console
+	</div>
+	<div id="message"></div>
+	<script>
+		var pEl = document.getElementById('player');
+		var cEl = document.getElementById('console');
+		var message = document.getElementById('message');
+		var input = document.getElementById('token');
+		var start, init, reconnect;
+
+
+		var page = location.href.indexOf('?console') > 0 ? 'console' : 'player';
+
+		if (page == 'console'){
+			cEl.style.display = 'block';
+
+			var server = new Connector({
+					server: ['getToken', 'bind'],
+					remote: '/console'
+				}
+			);
+
+			server.on('player-joined', function(data){
+				start(data.guid);
+			});
+
+			init = function(){
+				message.innerHTML = 'ready';
+				if (!localStorage.getItem('consoleguid')){
+					server.getToken(function(token){
+						message.innerHTML = 'token: ' + token;
+					});
+				} else {
+					reconnect();
+				}
+			};
+
+			reconnect = function(){
+				server.bind({guid: localStorage.getItem('consoleguid'), type: 'console'}, function(data){
+					if (data.status == 'success'){
+						start(data.guid);
+					} else if (data.status == 'undefined guid'){
+						localStorage.removeItem('consoleguid');
+						init();
+					}
+				});
+			};
+
+			server.on('reconnect', reconnect);
+
+			start = function(guid){
+				console.log('start console');
+				localStorage.setItem('consoleguid', guid);
+				message.innerHTML = 'game';
+			};
+
+			init();
+
+		} else {
+			pEl.style.display = 'block';
+
+			var server = new Connector({
+					server: ['bind'],
+					remote: '/player'
+				}
+			);
+
+			init = function(){
+				message.innerHTML = 'ready';
+				if (!localStorage.getItem('playerguid')){
+					input.parentNode.addEventListener('submit', function(e){
+						e.preventDefault();
+
+						server.bind({token: input.value, type: 'player'}, function(data){
+							if (data.status == 'success'){
+								start(data.guid);
+							}
+						});
+					}, false);
+
+				} else {
+					reconnect();
+				}
+			};
+
+			reconnect = function(){
+				server.bind({guid: localStorage.getItem('playerguid'), type: 'player'}, function(data){
+					if (data.status == 'success'){
+						start(data.guid);
+					} else if (data.status == 'undefined guid'){
+						localStorage.removeItem('playerguid');
+						init();
+					}
+				});
+			};
+
+			start = function(guid){
+				console.log('start player');
+				localStorage.setItem('playerguid', guid);
+				message.innerHTML = 'game';
+			};
+
+			server.on('reconnect', reconnect);
+
+			init();
+
+			/*server.onReady(function(){
+				server.one('some', function(answer){console.log(answer)});
+			});*/
+		}
+
+		server.on('message', function(data, answer){
+			console.log('message', data);
+			answer('answer')
+		})
+	</script>
+	<!--<script>
+		var socket = io.connect('http://localhost');
+		var type = location.href.indexOf('desktop') > 0 ? 'desktop' : 'joystick';
+		var jEl = document.getElementById('joystick');
+		var dEl = document.getElementById('desktop');
+		var message = document.getElementById('message');
+
+		if (type == 'desktop'){
+			var guid;
+
+			dEl.style.display = 'block';
+			socket.on('connect', function(){
+				if (!guid){
+					socket.emit('get', 'token', function(data){
+						dEl.innerHTML = 'Token: ' + data;
+					});
+
+					socket.on('start', function(data){
+						guid = data.guid;
+						start(data);
+					});
+
+				} else {
+					socket.emit('restore', guid, function(data){
+						if (data.status == 'success'){
+							restore(data);
+						}
+					});
+				}
+			});
+
+			socket.on('disconnect', pause);
+
+			function start(data){
+				message.innerHTML = 'start: ' + JSON.stringify(data);
+			};
+			function restore(data){
+				message.innerHTML = 'restore: ' + JSON.stringify(data);
+			};
+
+			function pause(data){
+				message.innerHTML = 'pause';
+			};
+
+		} else {
+			var guid;
+			socket.on('connect', function(){
+				jEl.style.display = 'block';
+
+				var input = document.getElementById('token');
+
+				if (!guid){
+					input.parentNode.addEventListener('submit', function(e){
+						e.preventDefault();
+						bind();
+					}, false);
+				} else {
+					bind();
+				}
+
+				function bind(){
+					socket.emit('bind', guid || input.value, function(data){
+						message.innerHTML = JSON.stringify(data);
+						if (data.status == 'success'){
+							if (!guid){
+								guid = data.guid;
+								startJ();
+							} else {
+								restoreJ();
+							}
+						}
+					});
+				}
+			});
+
+			socket.on('disconnect', pauseJ);
+
+			function startJ(){};
+			function restoreJ(){};
+			function pauseJ(){};
+		}
+
+		function sendMessage(message, callback){
+			//send message
+			socket.emit('sms', {message: message, guid: guid}, function(data){
+				//answer
+				callback &amp;&amp; callback(JSON.stringify(data));
+			});
+		}
+
+
+			//receive message
+			socket.on('sms', function(data, callback){
+				// answer
+				message.innerHTML = 'receive message: ' + JSON.stringify(data);
+				callback &amp;&amp; callback({status: 'success'});
+			});
+	</script>-->
+</html>
