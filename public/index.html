@@ -7,16 +7,55 @@
 	<body>
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="/js/jquery.js"></script>
+		<script src="/js/underscore.js"></script>
+		<script src="/js/backbone.js"></script>
 		<script src="/js/EventEmitter.js"></script>
 		<script src="/js/fn-query.js"></script>
 		<script src="/js/rpc.js"></script>
-		<!--<script>
-		  socket.on('news', function (data) {
-		    console.log(data);
-		    socket.emit('my other event', { my: 'data' });
-		  });
-		</script>-->
 	</body>
+	<script>
+		var Score = Backbone.Model.extend({
+			//url: '/score',
+			defaults: {
+				name: 'unnamed',
+				score: 0
+			}
+		});
+
+		var score = new Score('name', 10);
+
+		var Scores = Backbone.Collection.extend({
+			url: '/scores',
+			model: Score
+		});
+
+		var scores = new Scores();
+
+		scores.create({name: 'name', score: 10});
+		scores.create({name: 'name 2', score: 250});
+		scores.create({name: 'name 3', score: 25});
+		scores.create({name: 'name 3', score: 25});
+		scores.create({name: 'name 3', score: 25});
+		scores.create({name: 'name 3', score: 25});
+		scores.create({name: 'name 3', score: 25});
+		scores.create({name: 'name 3', score: 25});
+		scores.create({name: 'name 3', score: 25});
+		scores.create({name: 'name 3', score: 25});
+		scores.create({name: 'name 3', score: 25});
+		scores.create({name: 'name 3', score: 25});
+		scores.create({name: 'name 3', score: 25});
+		scores.create({name: 'name 3', score: 25});
+		scores.create({name: 'name 3', score: 25});
+		scores.create({name: 'name 3', score: 25});
+		scores.create({name: 'name 3', score: 25});
+		scores.create({name: 'name 3', score: 25});
+
+		scores.fetch({data: {limit: 10}});
+
+		scores.remove(scores.models[2]);
+
+
+	</script>
 	<div id="player" style="display: none;">
 		<form>
 			<input id="token"></input>
@@ -33,7 +72,6 @@
 		var message = document.getElementById('message');
 		var input = document.getElementById('token');
 		var start, init, reconnect;
-
 
 		var page = location.href.indexOf('?console') > 0 ? 'console' : 'player';
 
@@ -140,102 +178,4 @@
 			answer('answer')
 		})
 	</script>
-	<!--<script>
-		var socket = io.connect('http://localhost');
-		var type = location.href.indexOf('desktop') > 0 ? 'desktop' : 'joystick';
-		var jEl = document.getElementById('joystick');
-		var dEl = document.getElementById('desktop');
-		var message = document.getElementById('message');
-
-		if (type == 'desktop'){
-			var guid;
-
-			dEl.style.display = 'block';
-			socket.on('connect', function(){
-				if (!guid){
-					socket.emit('get', 'token', function(data){
-						dEl.innerHTML = 'Token: ' + data;
-					});
-
-					socket.on('start', function(data){
-						guid = data.guid;
-						start(data);
-					});
-
-				} else {
-					socket.emit('restore', guid, function(data){
-						if (data.status == 'success'){
-							restore(data);
-						}
-					});
-				}
-			});
-
-			socket.on('disconnect', pause);
-
-			function start(data){
-				message.innerHTML = 'start: ' + JSON.stringify(data);
-			};
-			function restore(data){
-				message.innerHTML = 'restore: ' + JSON.stringify(data);
-			};
-
-			function pause(data){
-				message.innerHTML = 'pause';
-			};
-
-		} else {
-			var guid;
-			socket.on('connect', function(){
-				jEl.style.display = 'block';
-
-				var input = document.getElementById('token');
-
-				if (!guid){
-					input.parentNode.addEventListener('submit', function(e){
-						e.preventDefault();
-						bind();
-					}, false);
-				} else {
-					bind();
-				}
-
-				function bind(){
-					socket.emit('bind', guid || input.value, function(data){
-						message.innerHTML = JSON.stringify(data);
-						if (data.status == 'success'){
-							if (!guid){
-								guid = data.guid;
-								startJ();
-							} else {
-								restoreJ();
-							}
-						}
-					});
-				}
-			});
-
-			socket.on('disconnect', pauseJ);
-
-			function startJ(){};
-			function restoreJ(){};
-			function pauseJ(){};
-		}
-
-		function sendMessage(message, callback){
-			//send message
-			socket.emit('sms', {message: message, guid: guid}, function(data){
-				//answer
-				callback &amp;&amp; callback(JSON.stringify(data));
-			});
-		}
-
-
-			//receive message
-			socket.on('sms', function(data, callback){
-				// answer
-				message.innerHTML = 'receive message: ' + JSON.stringify(data);
-				callback &amp;&amp; callback({status: 'success'});
-			});
-	</script>-->
 </html>
