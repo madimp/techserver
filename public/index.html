@@ -22,7 +22,7 @@
 			}
 		});
 
-		var score = new Score('name', 10);
+		var score = new Score({name: 'name', score: 10});
 
 		var Scores = Backbone.Collection.extend({
 			url: '/scores',
