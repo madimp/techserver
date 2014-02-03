@@ -28,7 +28,9 @@ var functions = {
 		answer(token);
 	},
 	bind: function(data, answer){
-		if (data.type == 'player'){
+		var type = this.namespace.name.substr(1);
+
+		if (type == 'player'){
 			if (data.token){
 				if (!tokens[data.token]){
 					answer({

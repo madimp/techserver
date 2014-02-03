@@ -9,7 +9,6 @@
 		<script src="/js/jquery.js"></script>
 		<script src="/js/underscore.js"></script>
 		<script src="/js/backbone.js"></script>
-		<script src="/js/EventEmitter.js"></script>
 		<script src="/js/fn-query.js"></script>
 		<script src="/js/rpc.js"></script>
 	</body>
@@ -100,7 +99,7 @@
 			};
 
 			reconnect = function(){
-				server.bind({guid: localStorage.getItem('consoleguid'), type: 'console'}, function(data){
+				server.bind({guid: localStorage.getItem('consoleguid')}, function(data){
 					if (data.status == 'success'){
 						start(data.guid);
 					} else if (data.status == 'undefined guid'){
@@ -135,7 +134,7 @@
 					input.parentNode.addEventListener('submit', function(e){
 						e.preventDefault();
 
-						server.bind({token: input.value, type: 'player'}, function(data){
+						server.bind({token: input.value}, function(data){
 							if (data.status == 'success'){
 								start(data.guid);
 							}
@@ -148,7 +147,7 @@
 			};
 
 			reconnect = function(){
-				server.bind({guid: localStorage.getItem('playerguid'), type: 'player'}, function(data){
+				server.bind({guid: localStorage.getItem('playerguid')}, function(data){
 					if (data.status == 'success'){
 						start(data.guid);
 					} else if (data.status == 'undefined guid'){

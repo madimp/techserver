@@ -17,7 +17,7 @@ function Connector(conf){
 	this.socket.on('disconnect', function(){
 		self._connected = false;
 		self._query.store();
-		self.emit('disconnect');
+		self.trigger('disconnect');
 	});
 
 	this.socket.on('connect', function(){
@@ -28,30 +28,30 @@ function Connector(conf){
 
 				self._setReady();
 				self._connected = true;
-				self.emit('connect');
+				self.trigger('connect');
 				self._query.run();
 			});
 
 			self.socket.on('sms', function(data, answer){
-				self.emit(data.type, data.data, answer);
+				self.trigger(data.type || 'message', data.data, answer);
 			});
 
 		} else {
 			self._connected = true;
-			self.emit('reconnect');
+			self.trigger('reconnect');
 			self._query.run();
 		}
 	});
 }
 
-$.extend(Connector.prototype, new EventEmitter, {
-	send: function(type, data, answer){
+$.extend(Connector.prototype, Backbone.Events, {
+	send: function(data, answer){
 		if (!answer && typeof data == 'function'){
 			answer = data;
 			data = void 0;
 		}
 
-		this.socket.emit('sms', {type: type, data: data}, function(data){
+		this.socket.emit('sms', {data: data}, function(data){
 			answer && answer(data);
 		})
 	},
@@ -86,29 +86,27 @@ $.extend(Connector.prototype, new EventEmitter, {
 		for (var i = 0, l = fnList.length; i < l; i++){
 			var name = fnList[i];
 
-			if (!(name in self)){
-				self[name] = (function(name){
-					return function(data, answer){
-						self._query.add(function(){
-							if (self._fnList.indexOf(name) == -1){
-								answer && answer('Error: undefined function');
-								return;
-							}
+			self[name] = (function(name){
+				return function(data, answer){
+					self._query.add(function(){
+						if (self._fnList.indexOf(name) == -1){
+							answer && answer('Error: undefined function');
+							return;
+						}
 
-							if (!answer && typeof data == 'function'){
-								answer = data;
-								data = void 0;
-							}
+						if (!answer && typeof data == 'function'){
+							answer = data;
+							data = void 0;
+						}
 
-							self.socket.emit('fnCall', {
-								name: name,
-								data: data
-							}, answer);
+						self.socket.emit('fnCall', {
+							name: name,
+							data: data
+						}, answer);
 
-						});
-					};
-				})(name);
-			}
+					});
+				};
+			})(name);
 		}
 	}
 });
